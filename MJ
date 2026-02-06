@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Will you be my Valentine?</title>
+  <style>
+    :root { --yes:#28a745; --no:#dc3545; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+      color: #db0f0f;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+    }
+    .wrap {
+      width: min(720px, 92vw);
+      text-align: center;
+      padding: 24px 16px;
+    }
+    img {
+      width: 180px;
+      height: auto;
+      display: block;
+      margin: 0 auto 16px;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    #mainGif {
+      width: min(420px, 90vw);
+      height: auto;
+      display: block;
+      margin: 0 auto 12px;
+    }
+
+    /* Hello Mahjabin */
+    #greeting {
+      margin: 0 0 8px;
+      font-size: 48px;
+      font-weight: 700;
+      color: #118a1b;
+      line-height: 1;
+    }
+    h1 {
+      margin: 0 0 16px;
+      font-size: 36px;
+      font-weight: 500;
+    }
+
+    /* Area the button can move  */
+    .btn-area {
+      position: relative;
+      width: 750px;
+      height: 150px;
+      margin: 0 auto;
+    }
+    button {
+      border: 0;
+      padding: 10px 16px;
+      font-size: 16px;
+      border-radius: 4px;
+      color: #fff;
+      cursor: pointer;
+    }
+    #yesBtn {
+      background: var(--yes);
+      position: absolute;
+      left: 35px;
+      top: 18px;
+    }
+    #noBtn {
+      background: var(--no);
+      position: absolute;
+      left: 140px;
+      top: 18px;
+      touch-action: none;
+    }
+
+    .message {
+      margin-top: 18px;
+      font-size: 18px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <!-- Gif -->
+    <h2 id="greeting">⋆. 𐙚˚࿔ Hey BabyBoo 𝜗𝜚˚⋆ </h2>
+    <img id="mainGif" src="https://tenor.com/view/minions-heart-love-gif-26369196.gif" alt="Main GIF">
+    <img id="smallGif" src="https://tenor.com/view/cat-cats-jump-brandon-buell-funny-gif-23841418.gif" alt="Celebration GIF" style="display:none">
+    <h1>Will you be my Valentine?</h1>
+
+    <div class="btn-area" id="area">
+      <button id="yesBtn">Yes</button>
+      <button id="noBtn">No</button>
+    </div>
+
+    <div class="message" id="msg">
+  </div>
+
+  <script>
+    const area = document.getElementById('area');
+    const noBtn = document.getElementById('noBtn');
+    const yesBtn = document.getElementById('yesBtn');
+    const msg = document.getElementById('msg');
+
+    function clamp(n, min, max) { return Math.max(min, Math.min(max, n)); }
+
+    function placeNo(x, y) {
+      const a = area.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+
+      const maxX = a.width - b.width;
+      const maxY = a.height - b.height;
+
+      noBtn.style.left = clamp(x, 0, maxX) + 'px';
+      noBtn.style.top  = clamp(y, 0, maxY) + 'px';
+    }
+
+    function randomPlaceNo() {
+      const a = area.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+      const x = Math.random() * (a.width - b.width);
+      const y = Math.random() * (a.height - b.height);
+      placeNo(x, y);
+    }
+
+    // Flee from mouse
+    function fleeFrom(clientX, clientY) {
+      const a = area.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+
+      // Pointer position relative to area
+      const px = clientX - a.left;
+      const py = clientY - a.top;
+
+      // Button center relative to area
+      const bx = (b.left - a.left) + b.width / 2;
+      const by = (b.top  - a.top)  + b.height / 2;
+
+      const dx = bx - px;
+      const dy = by - py;
+      const dist = Math.hypot(dx, dy);
+
+      // How close the mouse has to be before it runs
+      const trigger = 90;
+
+      if (dist < trigger) {
+        // Move away from pointer, with randomness
+        const push = 110; // bigger, harder to catch
+        const ux = (dx / (dist || 1));
+        const uy = (dy / (dist || 1));
+
+        const jitter = 20;
+        const targetX = (bx + ux * push + (Math.random() * jitter - jitter/2)) - (b.width / 2);
+        const targetY = (by + uy * push + (Math.random() * jitter - jitter/2)) - (b.height / 2);
+
+        placeNo(targetX, targetY);
+      }
+    }
+
+    // Mouse: run away when the cursor moves in the area
+    area.addEventListener('mousemove', (e) => fleeFrom(e.clientX, e.clientY));
+
+    // Touch: run away on touchstart / touchmove
+    area.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      fleeFrom(t.clientX, t.clientY);
+    }, { passive: true });
+
+    area.addEventListener('touchmove', (e) => {
+      const t = e.touches[0];
+      fleeFrom(t.clientX, t.clientY);
+    }, { passive: true });
+
+    // If No clicked, turn it into another Yes button
+    function convertNoToYes(e) {
+      e.preventDefault();
+      noBtn.textContent = 'Actually, You dont have a choice 🫤';
+      noBtn.style.background = 'var(--yes)';
+      noBtn.removeEventListener('click', convertNoToYes);
+      noBtn.addEventListener('click', handleYes);
+    }
+
+    noBtn.addEventListener('click', convertNoToYes);
+
+    // Yes behavior: Switch GIFs and show new message
+    function handleYes() {
+      const mainGif = document.getElementById('mainGif');
+      const smallGif = document.getElementById('smallGif');
+      const greeting = document.getElementById('greeting');
+      const title = document.querySelector('h1');
+      const area = document.getElementById('area');
+
+      if (greeting) greeting.style.display = 'none';
+      if (mainGif) mainGif.style.display = 'none';
+      if (smallGif) smallGif.style.display = 'block';
+      if (area) area.style.display = 'none';
+      if (title) {
+        title.textContent = 'Yayy!! 💖👩🏽‍❤️‍💋‍👨🏻';
+      }
+      msg.style.display = 'none';
+    }
+
+    yesBtn.addEventListener('click', handleYes);
+
+    // Initial placement
+    window.addEventListener('load', () => randomPlaceNo());
+    window.addEventListener('resize', () => randomPlaceNo());
+  </script>
+</body>
+</html>
