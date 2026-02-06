@@ -181,7 +181,7 @@
     // If No clicked, turn it into another Yes button
     function convertNoToYes(e) {
       e.preventDefault();
-      noBtn.textContent = 'Actually, You dont have a choice 🫤';
+      noBtn.textContent = 'Actually, You dont have a choice (ㆆ_ㆆ)';
       noBtn.style.background = 'var(--yes)';
       noBtn.removeEventListener('click', convertNoToYes);
       noBtn.addEventListener('click', handleYes);
